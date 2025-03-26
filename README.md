@@ -83,5 +83,6 @@ A: Not yet, but support for batch processing may be added in a future version.
 
 ## 🙌 Credits
 
-Developed by [sehyeon.eom]  
+Developed by [sehyeon.eom](https://github.com/muring).
+
 Feel free to contribute or submit issues on GitHub!
