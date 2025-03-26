@@ -1,0 +1,9 @@
+# folder directory
+data
+build
+dist
+
+# files
+*.txt
+*.pdf
+*.spec
