@@ -51,10 +51,10 @@ pip install PyPDF2 fpdf
 
 ### 2. Build Executable (.exe)
 
-Use `pyinstaller` to build a standalone executable from `new_updated/` directory:
+Navigate to the project directory (e.g., `new_updated/`) and run the following commands:
 
 ```bash
-pip install pyinstaller
+pip install pyinstaller  # Skip it if you've already installed it.
 pyinstaller --noconsole --onefile --add-data "C:/Windows/Fonts/malgun.ttf;." DumpExtractor.py
 ```
 
