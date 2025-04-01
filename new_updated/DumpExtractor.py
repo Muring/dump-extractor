@@ -8,7 +8,7 @@ from tkinter import filedialog, messagebox, ttk
 from PyPDF2 import PdfReader
 from fpdf import FPDF
 
-font_path = "C:\\Windows\\Fonts\\malgun.ttf"
+font_path = "C:\\Windows\\Fonts\\malgunsl.ttf"
 
 class PDFWithHiddenAnswers(FPDF):
     def __init__(self, title="", show_answer=True, answer_transparent=False):
