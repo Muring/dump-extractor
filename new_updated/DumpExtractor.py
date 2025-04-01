@@ -68,7 +68,7 @@ def extract_questions_with_answer(pdf_path, output_dir):
     )
 
     def clean_line_breaks(text):
-        return re.sub(r'(?<!\n)(?<![A-D]\.)\n(?![A-D]\.|Answer:)', ' ', text)
+        return re.sub(r'(?<!\n)(?<![A-E]\.)\n(?![A-E]\.|Answer:)', ' ', text)
 
     cleaned = [
         normalize_question_number(
@@ -237,5 +237,15 @@ class DumpExtractorApp:
 if __name__ == "__main__":
     root = tk.Tk()
     root.geometry("640x460")
+    
+    # 화면 정중앙에 배치
+    window_width = 640
+    window_height = 460
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    x = (screen_width // 2) - (window_width // 2)
+    y = (screen_height // 2) - (window_height // 2)
+    root.geometry(f"{window_width}x{window_height}+{x}+{y}")
+    
     app = DumpExtractorApp(root)
     root.mainloop()
