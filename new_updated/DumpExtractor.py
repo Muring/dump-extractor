@@ -8,7 +8,13 @@ from tkinter import filedialog, messagebox, ttk
 from PyPDF2 import PdfReader
 from fpdf import FPDF
 
-font_path = "C:\\Windows\\Fonts\\malgunsl.ttf"
+font_path_regular = "C:\\Windows\\Fonts\\arial.ttf"      # Regular
+font_path_bold = "C:\\Windows\\Fonts\\arialbd.ttf"       # Bold
+
+# 제거하고 싶은 머리말, 꼬리말 같은 문구 등록
+unwanted_phrases = [
+    "IT Certification Guaranteed, The Easy Way!",
+]
 
 class PDFWithHiddenAnswers(FPDF):
     def __init__(self, title="", show_answer=True, answer_transparent=False):
@@ -18,41 +24,55 @@ class PDFWithHiddenAnswers(FPDF):
         self.answer_transparent = answer_transparent
         self.add_page()
         self.set_auto_page_break(auto=True, margin=15)
-        self.add_font("Custom", "", font_path, uni=True)
-        self.set_font("Custom", size=12)
+        self.add_font("ArialCustom", "", font_path_regular, uni=True)
+        self.add_font("ArialCustom", "B", font_path_bold, uni=True)
+        self.set_font("ArialCustom", size=12)
         self.set_text_color(0, 0, 0)
         self._add_title()
 
     def _add_title(self):
         if self.title_text:
-            self.set_font("Custom", size=20)
+            self.set_font("ArialCustom", style="B", size=20)
             self.cell(0, 15, self.title_text, ln=True, align="C")
             self.ln(10)
-            self.set_font("Custom", size=12)
+            self.set_font("ArialCustom", size=12)
 
     def add_question_text(self, question_text):
         lines = question_text.strip().split('\n')
-        for line in lines:
+        for i, line in enumerate(lines):
             stripped = line.strip()
+
+            # 번호
             if re.match(r'NO[:\.] \d+', stripped, re.IGNORECASE):
-                self.set_font("Custom", size=13)
-                self.multi_cell(0, 10, stripped)
-                self.set_font("Custom", size=12)
+                self.set_font("ArialCustom", style="B", size=13)
+                self.multi_cell(0, 8, stripped)
+                self.set_font("ArialCustom", size=12)
+
+            # 보기
+            elif re.match(r'^[A-E]\.', stripped):
+                self.ln(2)  # 위쪽 여백
+                self.multi_cell(0, 6, stripped)
+
+            # 정답
             elif stripped.startswith("Answer:"):
+                self.ln(6)  # 위쪽 여백
                 if self.show_answer:
                     if self.answer_transparent:
                         self.set_text_color(240, 240, 240)
-                    self.multi_cell(0, 10, stripped)
+                    self.multi_cell(0, 8, stripped)
                     self.set_text_color(0, 0, 0)
+                self.ln(8)  # 아래쪽 여백
+
+            # 문제 본문
             else:
-                self.multi_cell(0, 10, stripped)
-        self.ln(5)
+                self.multi_cell(0, 8, stripped)
 
 def normalize_question_number(text):
     # QUESTION NO: 1 or NO. 1 → NO: 1
     return re.sub(r'(?:QUESTION\s+)?NO[:\.]\s*(\d+)', r'NO. \1', text, flags=re.IGNORECASE)
 
 def extract_questions_with_answer(pdf_path, output_dir):
+    import re
     base_name = os.path.splitext(os.path.basename(pdf_path))[0]
     output_txt = os.path.join(output_dir, f"{base_name}_cleaned.txt")
 
@@ -61,6 +81,14 @@ def extract_questions_with_answer(pdf_path, output_dir):
     for page in reader.pages:
         full_text += page.extract_text()
 
+    # 광고 문구 제거
+    for phrase in unwanted_phrases:
+        full_text = full_text.replace(phrase, "")
+    
+    # 숫자만 있는 줄 제거 (쪽수 제거)
+    full_text = re.sub(r'^\s*\d+\s*$', '', full_text, flags=re.MULTILINE)
+
+    # 문제 추출 (QUESTION NO 또는 NO. 으로 시작, Answer로 끝)
     questions_with_answers = re.findall(
         r"((?:QUESTION\s+NO|NO)[:\.]\s*\d+.*?^Answer:.*?$)",
         full_text,
@@ -68,7 +96,26 @@ def extract_questions_with_answer(pdf_path, output_dir):
     )
 
     def clean_line_breaks(text):
-        return re.sub(r'(?<!\n)(?<![A-E]\.)\n(?![A-E]\.|Answer:)', ' ', text)
+        lines = text.split('\n')
+        cleaned_lines = []
+
+        for i, line in enumerate(lines):
+            line = line.strip()
+            if re.match(r'^NO[:\.] \d+', line):  # 문제 번호는 무조건 단독 개행
+                cleaned_lines.append(line)
+            elif re.match(r'^[A-E]\.', line) or line.startswith('Answer:'):  # 보기는 개행 유지
+                cleaned_lines.append('\n' + line)
+            else:
+                # 문제 본문은 직전이 번호인 경우에는 개행 유지, 아니면 붙이기
+                if cleaned_lines and re.match(r'^NO[:\.] \d+', cleaned_lines[-1]):
+                    cleaned_lines.append(line)
+                else:
+                    cleaned_lines.append(' ' + line if cleaned_lines else line)
+
+        return '\n'.join(cleaned_lines).strip()
+
+    def normalize_question_number(text):
+        return re.sub(r'(?:QUESTION\s+)?NO[:\.]\s*(\d+)', r'NO. \1', text, flags=re.IGNORECASE)
 
     cleaned = [
         normalize_question_number(
