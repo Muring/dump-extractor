@@ -54,7 +54,12 @@ pip install PyPDF2 fpdf
 Navigate to the project directory (e.g., `new_updated/`) and run the following commands:
 
 ```bash
-pip install pyinstaller  # Skip it if you've already installed it.
+pip install pyinstaller  # Skip it if you've already installed it
+
+# Normal use
+pyinstaller --noconsole --onefile --add-data DumpExtractor.py
+
+# If you want to put a specific font data
 pyinstaller --noconsole --onefile --add-data "C:/Windows/Fonts/malgun.ttf;." DumpExtractor.py
 ```
 
