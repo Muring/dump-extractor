@@ -66,6 +66,8 @@ pyinstaller --noconsole --onefile --add-data "C:/Windows/Fonts/malgun.ttf;." Dum
 > Make sure the font path is correct for your system.  
 > Output will be in the `dist/` folder.
 
+> _For English version, move to directory `new_updated_eng/`_
+
 ## 📁 Output Format
 
 The output PDF will contain:
